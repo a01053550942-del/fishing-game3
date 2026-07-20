@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+
+<meta charset="UTF-8">
+<title>🎣 범수낚시 게임</title>
+
+<style>
+
+body{
+margin:0;
+background:#0077be;
+color:white;
+text-align:center;
+font-family:Arial;
+}
+
+h1{
+font-size:50px;
+text-shadow:3px 3px 5px black;
+}
+
+#game{
+width:600px;
+margin:auto;
+background:rgba(0,0,0,0.6);
+padding:25px;
+border-radius:20px;
+}
+
+.info{
+font-size:25px;
+margin:10px;
+}
+
+button{
+padding:15px 25px;
+margin:10px;
+font-size:20px;
+border-radius:15px;
+border:0;
+cursor:pointer;
+background:#00c853;
+color:white;
+}
+
+
+#barBox{
+display:none;
+width:450px;
+height:35px;
+background:#333;
+margin:20px auto;
+border-radius:20px;
+overflow:hidden;
+}
+
+#bar{
+width:50%;
+height:100%;
+background:#00ff88;
+}
+#fish{
+position:relative;
+font-size:40px;
+margin:20px;
+left:0;
+transition:0.2s;
+}
+#result{
+font-size:30px;
+margin:20px;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<h1>🎣 범수낚시 게임</h1>
+
+
+<div id="game">
+
+
+<div class="info">
+💰 돈 : <span id="money">0</span>원
+</div>
+
+
+<div class="info">
+⭐ 레벨 : <span id="level">1</span>
+</div>
+
+
+<div class="info">
+✨ 경험치 : <span id="exp">0</span>/100
+</div>
+
+
+<div class="info">
+🎣 낚싯대 Lv.<span id="rod">1</span>
+</div>
+<div class="info">
+🏝️ 지역 : <span id="area">🌊 얕은 바다</span>
+</div>
+
+<button onclick="changeArea()">
+🏝️ 지역 이동
+</button>
+
+<button onclick="startFishing()">
+🎣 낚시하기
+</button>
+
+
+<button id="catchButton" onclick="catchFish()" style="display:none;">
+🎯 잡기
+</button>
+
+<button onclick="powerUp()">🎣 당기기</button>
+
+<button onclick="openBag()">
+🎒 가방
+</button>
+
+<button onclick="sellFish()">
+🐟 판매
+</button>
+
+<button onclick="openBook()">
+ 📖 도감
+</button>
+
+<button onclick="openShop()">
+🏪 상점
+</button>
+<div id="fish">
+🐟
+</div>
+<div id="barBox">
+<div id="bar"></div>
+</div>
+
+
+<div id="result">
+낚시를 시작하세요!
+</div>
+
+
+</div>
+
+
+
+<script>
+const fishes=[
+
+// 🌊 얕은 바다 (1)
+{name:"붕어",rank:"⚪ 일반",price:100,area:1},
+{name:"잉어",rank:"⚪ 일반",price:150,area:1},
+{name:"금붕어",rank:"⚪ 일반",price:200,area:1},
+{name:"송사리",rank:"⚪ 일반",price:80,area:1},
+{name:"피라미",rank:"⚪ 일반",price:120,area:1},
+{name:"멸치",rank:"⚪ 일반",price:100,area:1},
+{name:"전어",rank:"🟢 고급",price:500,area:1},
+{name:"고등어",rank:"🟢 고급",price:700,area:1},
+{name:"참치",rank:"🟢 고급",price:1000,area:1},
+{name:"연어",rank:"🟢 고급",price:1200,area:1},
+{name:"방어",rank:"🟢 고급",price:1500,area:1},
+{name:"농어",rank:"🟢 고급",price:1800,area:1},
+{name:"도미",rank:"🔵 희귀",price:2500,area:1},
+{name:"광어",rank:"🔵 희귀",price:3000,area:1},
+{name:"오징어",rank:"🔵 희귀",price:3500,area:1},
+{name:"쭈꾸미",rank:"🔵 희귀",price:4000,area:1},
+{name:"새우",rank:"🔵 희귀",price:4500,area:1},
+{name:"랍스터",rank:"🟣 영웅",price:8000,area:1},
+{name:"킹크랩",rank:"🟣 영웅",price:10000,area:1},
+{name:"황금 물고기",rank:"🟡 전설",price:50000,area:1},
+{name:"무지개 물고기",rank:"🟡 전설",price:70000,area:1},
+{name:"빛나는 잉어",rank:"🌈 초월",price:200000,area:1},
+{name:"천년 붕어",rank:"🌈 초월",price:300000,area:1},
+{name:"행운 물고기",rank:"🌈 초월",price:500000,area:1},
+{name:"바다 보석어",rank:"🌈 초월",price:700000,area:1},
+
+
+// 🌊 깊은 바다 (2)
+{name:"갈치",rank:"🔵 희귀",price:2000,area:2},
+{name:"복어",rank:"🔵 희귀",price:3000,area:2},
+{name:"가오리",rank:"🔵 희귀",price:4000,area:2},
+{name:"청새치",rank:"🟣 영웅",price:8000,area:2},
+{name:"상어",rank:"🟣 영웅",price:10000,area:2},
+{name:"망치상어",rank:"🟣 영웅",price:15000,area:2},
+{name:"범고래",rank:"🟣 영웅",price:20000,area:2},
+{name:"돌고래",rank:"🟣 영웅",price:25000,area:2},
+{name:"거대 문어",rank:"🟡 전설",price:50000,area:2},
+{name:"해파리 왕",rank:"🟡 전설",price:60000,area:2},
+{name:"검은 참치",rank:"🟡 전설",price:80000,area:2},
+{name:"황금 상어",rank:"🟡 전설",price:100000,area:2},
+{name:"심해 가오리",rank:"🟡 전설",price:120000,area:2},
+{name:"얼음 물고기",rank:"🌈 초월",price:300000,area:2},
+{name:"불꽃 물고기",rank:"🌈 초월",price:500000,area:2},
+{name:"번개 물고기",rank:"🌈 초월",price:700000,area:2},
+{name:"고대 상어",rank:"🌈 초월",price:1000000,area:2},
+{name:"바다 기사",rank:"🌈 초월",price:1500000,area:2},
+{name:"심해 왕",rank:"🌈 초월",price:2000000,area:2},
+{name:"전설 고래",rank:"🌈 초월",price:3000000,area:2},
+
+
+// 🌌 심해 (3)
+{name:"고래",rank:"🟡 전설",price:20000,area:3},
+{name:"혹등고래",rank:"🟡 전설",price:40000,area:3},
+{name:"대왕오징어",rank:"🟡 전설",price:70000,area:3},
+{name:"심해 상어",rank:"🟡 전설",price:100000,area:3},
+{name:"검은 고래",rank:"🟡 전설",price:150000,area:3},
+{name:"유령 물고기",rank:"🌈 초월",price:500000,area:3},
+{name:"심해 드래곤",rank:"🌈 초월",price:1000000,area:3},
+{name:"고대 해룡",rank:"🌈 초월",price:2000000,area:3},
+{name:"심해 괴수",rank:"🌈 초월",price:3000000,area:3},
+{name:"암흑 고래",rank:"🌈 초월",price:5000000,area:3},
+{name:"별빛 물고기",rank:"🌈 초월",price:7000000,area:3},
+{name:"우주 물고기",rank:"🌈 초월",price:10000000,area:3},
+
+
+// 👑 전설의 바다 (4)
+{name:"심해 용",rank:"🌈 초월",price:1000000,area:4},
+{name:"크라켄",rank:"🌈 초월",price:3000000,area:4},
+{name:"바다 용왕",rank:"🌈 초월",price:5000000,area:4},
+{name:"신의 물고기",rank:"🌈 초월",price:10000000,area:4},
+{name:"천상 고래",rank:"🌈 초월",price:20000000,area:4},
+{name:"무한의 물고기",rank:"🌈 초월",price:50000000,area:4}
+
+];
+
+
+const areas=[
+"🌊 얕은 바다",
+"🌊 깊은 바다",
+"🌌 심해",
+"👑 전설의 바다"
+];
+
+
+// 저장 불러오기
+
+let money=Number(localStorage.getItem("money"))||0;
+
+let level=Number(localStorage.getItem("level"))||1;
+
+let exp=Number(localStorage.getItem("exp"))||0;
+
+let rod=Number(localStorage.getItem("rod"))||1;
+let area=Number(localStorage.getItem("area"))||1;
+let rodLevel=Number(localStorage.getItem("rodLevel"))||1;
+
+let bag=JSON.parse(localStorage.getItem("bag"))||[];
+
+let book=JSON.parse(localStorage.getItem("book"))||[];
+let power=50;
+let target=50;
+let move;
+let drain;
+// 저장
+
+function save(){
+
+localStorage.setItem("money",money);
+localStorage.setItem("level",level);
+localStorage.setItem("exp",exp);
+localStorage.setItem("rod",rod);
+localStorage.setItem("area",area);
+localStorage.setItem("rodLevel",rodLevel);
+
+// 가방 저장
+localStorage.setItem("bag",JSON.stringify(bag));
+
+// 도감 저장
+localStorage.setItem("book",JSON.stringify(book));
+
+}
+function changeArea(){
+
+area++;
+
+if(area>4){
+area=1;
+}
+
+alert(areas[area-1]+" 입장!");
+
+update();
+save();
+
+}
+
+
+// 화면 업데이트
+
+function update(){
+
+document.getElementById("money").innerHTML=money;
+
+document.getElementById("level").innerHTML=level;
+
+document.getElementById("exp").innerHTML=exp;
+
+document.getElementById("rod").innerHTML=rod;
+
+document.getElementById("area").innerHTML=areas[area-1];
+
+}
+
+update();
+
+
+
+// 낚시 시작
+
+function startFishing(){
+
+
+document.getElementById("barBox").style.display="block";
+
+document.getElementById("catchButton").style.display="inline";
+
+
+target=Math.random()*70+15;
+let fish=document.getElementById("fish");
+
+fish.style.left=target*4+"px";
+
+power=50;
+let bar=document.getElementById("bar");
+
+ drain=setInterval(()=>{
+
+power-=0.5;
+
+if(power<0) power=0;
+
+bar.style.width=power+"%";
+
+},100);
+
+
+
+document.onkeydown=function(e){
+
+if(e.code=="Space"){
+
+power+=5;
+
+if(power>100) power=100;
+
+document.getElementById("bar").style.width=power+"%";
+
+}
+
+}
+
+let fishInfo = getFish();
+
+let fishSpeed = 1 + area*0.5;
+
+if(fishInfo.rank.includes("전설")){
+    fishSpeed += 3;
+}
+
+if(fishInfo.rank.includes("초월")){
+    fishSpeed += 6;
+}
+
+move=setInterval(()=>{
+
+target += (Math.random()*2-1)*fishSpeed;
+
+if(target<0) target=0;
+if(target>100) target=100;
+
+document.getElementById("fish").style.left=target+"px";
+
+
+},50);
+
+
+document.getElementById("result").innerHTML=
+"🎣 물고기와 힘겨루기!";
+
+}
+
+function powerUp(){
+
+power+=8;
+
+if(power>100) power=100;
+
+document.getElementById("bar").style.width=power+"%";
+
+}
+
+
+// 크기 결정
+
+function getSize(){
+
+let r=Math.random()*100;
+
+
+if(r<0.5){
+
+return {
+name:"🔥 초대형",
+bonus:10,
+difficulty:3
+};
+
+}
+
+else if(r<3.5){
+
+return {
+name:"📏 중형",
+bonus:5,
+difficulty:2
+};
+
+}
+
+else if(r<15){
+
+return {
+name:"📏 대형",
+bonus:2,
+difficulty:1.5
+};
+
+}
+
+else{
+
+return {
+name:"📏 소형",
+bonus:1,
+difficulty:1
+};
+
+}
+
+}
+
+
+
+// 돌연변이
+
+function getMutation(){
+
+let r=Math.random()*100;
+
+
+if(r<1){
+
+return {
+name:"🌈 신화 돌연변이",
+bonus:20
+};
+
+}
+
+else if(r<5){
+
+return {
+name:"🔥 불타는 돌연변이",
+bonus:10
+};
+
+}
+
+else if(r<15){
+
+return {
+name:"🧬 돌연변이",
+bonus:5
+};
+
+}
+
+else{
+
+return {
+name:"",
+bonus:1
+};
+
+}
+
+}
+
+
+
+// 물고기 선택
+
+function getFish(){
+
+let list=fishes.filter(f=>f.area<=area);
+
+
+return list[
+Math.floor(Math.random()*list.length)
+];
+
+}
+
+
+
+
+// 잡기
+
+function catchFish(){
+
+
+clearInterval(move);
+clearInterval(drain);
+
+document.getElementById("barBox").style.display="none";
+
+document.getElementById("catchButton").style.display="none";
+
+
+
+let distance=Math.abs(power-target);
+
+
+let fish=getFish();
+
+let size=getSize();
+
+let mutation=getMutation();
+
+let difficulty=1;
+
+
+// 등급 난이도
+if(fish.rank.includes("전설")){
+    difficulty+=2;
+}
+
+if(fish.rank.includes("초월")){
+    difficulty+=4;
+}
+
+
+// 크기 난이도
+difficulty+=size.difficulty;
+
+
+// 게이지 성공 범위
+let catchRange=30;
+
+
+
+if(distance<catchRange){
+
+
+let price=
+fish.price *
+size.bonus *
+mutation.bonus *
+rod;
+
+
+
+let caught={
+
+name:fish.name,
+rank:fish.rank,
+size:size.name,
+mutation:mutation.name,
+price:price
+
+};
+
+
+bag.push(caught);
+
+
+if(!book.includes(fish.name)){
+
+book.push(fish.name);
+
+}
+
+exp+=20;
+
+
+
+if(exp>=100){
+
+level++;
+
+exp=0;
+
+alert("🎉 레벨 업!");
+
+}
+
+
+
+
+document.getElementById("result").innerHTML=
+
+"<h2>🎉 낚시 성공!</h2>"+
+"<h3>"+fish.rank+" "+fish.name+"</h3>"+
+"<h3>"+size.name+"</h3>"+
+"<h3>"+mutation.name+"</h3>"+
+"<h3>💰 가격 : "+price+"원</h3>";
+
+
+
+}
+
+else{
+
+
+document.getElementById("result").innerHTML=
+"😢 물고기가 도망갔습니다!";
+
+}
+
+
+
+update();
+
+save();
+
+
+}
+function openBag(){
+
+let text="";
+
+
+bag.forEach(f=>{
+
+text+=
+f.rank+" "+f.name+
+"<br>📏 "+f.size+
+" "+f.mutation+
+"<br>💰 "+f.price+"원<br><br>";
+
+});
+
+
+if(text==""){
+
+text="가방이 비어있습니다";
+
+}
+
+
+document.getElementById("result").innerHTML=
+"<h2>🎒 가방</h2>"+text;
+
+}
+
+
+
+
+function sellFish(){
+
+let total=0;
+
+
+bag.forEach(f=>{
+
+total+=f.price;
+
+});
+
+
+money+=total;
+
+
+bag=[];
+
+
+alert("🐟 판매 완료! "+total+"원 획득");
+
+
+update();
+
+save();
+
+}
+
+
+
+
+function openBook(){
+
+let text="📖 물고기 도감<br><br>";
+
+fishes.forEach(f=>{
+
+if(book.includes(f.name)){
+
+text+="✅ "+f.rank+" "+f.name+"<br>";
+
+}
+
+else{
+
+text+="❓ ???<br>";
+
+}
+
+});
+
+document.getElementById("result").innerHTML=text;
+
+}
+const rodPrices=[
+5000,
+10000,
+50000,
+100000,
+10000000
+];
+
+
+function openShop(){
+
+if(rodLevel>=6){
+
+document.getElementById("result").innerHTML=
+"<h2>👑 최강 낚싯대!</h2>"+
+"더 이상 강화할 수 없습니다.";
+
+return;
+
+}
+
+
+let price=rodPrices[rodLevel-1];
+
+
+document.getElementById("result").innerHTML=
+
+"<h2>🏪 낚싯대 상점</h2>"+
+"현재 낚싯대 : 🎣 Lv."+rodLevel+
+"<br>다음 레벨 : Lv."+(rodLevel+1)+
+"<br>강화 비용 : 💰 "+price+"원"+
+"<br><button onclick='upgradeRod()'>⬆️ 강화하기</button>";
+
+}
+
+
+
+function upgradeRod(){
+
+let price=rodPrices[rodLevel-1];
+
+
+if(money>=price){
+
+money-=price;
+
+rodLevel++;
+
+rod=rodLevel;
+
+alert("🎉 낚싯대 강화 성공! Lv."+rodLevel);
+
+}
+
+else{
+
+alert("💰 돈이 부족합니다!");
+
+}
+
+
+update();
+save();
+
+}
+</script>
+
+
+</body>
+</html>
